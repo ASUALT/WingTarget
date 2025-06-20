@@ -1,5 +1,6 @@
 package com.asualt.wingtarget;
 
+import com.asualt.wingtarget.item.ModItems;
 import net.fabricmc.api.ModInitializer;
 
 import org.slf4j.Logger;
@@ -11,5 +12,6 @@ public class WingTarget implements ModInitializer {
 
 	@Override
 	public void onInitialize() {
+		ModItems.registerModItems();
 	}
 }
