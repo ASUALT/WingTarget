@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"id": "wingtarget",
+	"version": "${version}",
+	"name": "WingTarget",
+	"description": "Adds auto target when you on elytra",
+	"authors": [
+		"ASUALT"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/wingtarget/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"com.asualt.wingtarget.WingTarget"
+		],
+		"fabric-datagen": [
+			"com.asualt.wingtarget.WingTargetDataGenerator"
+		],
+		"client": [
+			"com.asualt.wingtarget.WingTargetClient"
+		]
+	},
+	"mixins": [
+		"wingtarget.mixins.json"
+	],
+	"depends": {
+		"fabricloader": ">=0.16.14",
+		"minecraft": "~1.21",
+		"java": ">=21",
+		"fabric-api": "*"
+	},
+	"suggests": {
+		"another-mod": "*"
+	}
+}
