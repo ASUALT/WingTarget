@@ -15,10 +15,15 @@ public class Target {
         public Identifier getTargetTexture(){ return  targetTexture; }
     };
 
+    public static ETargetState currentState = ETargetState.TARGET_IDLE;
     public static final int targetSize = 32;
+
     public boolean isLocked = false;
+    public boolean isFollowing = false;
     public int targetPosX = 0, targetPosY = 0;
-    public Entity targetEntity;
+
+    public Entity targetEntity = null;
+    public int targetEntityDistance = 0;
 
     public void updatePosition(int x, int y){ targetPosX = x; targetPosY = y; }
 

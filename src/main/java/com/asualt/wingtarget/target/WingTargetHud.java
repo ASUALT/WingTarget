@@ -11,8 +11,6 @@ import net.minecraft.util.Identifier;
 
 public class WingTargetHud implements HudRenderCallback {
 
-    public static final Identifier TARGET_TEXTURE = Identifier.of("wingtarget", "textures/gui/target_idle.png");
-
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter renderTickCounter) {
 
@@ -22,19 +20,34 @@ public class WingTargetHud implements HudRenderCallback {
         // Get current item in chest slot
         ItemStack itemChest = _client.player.getEquippedStack(EquipmentSlot.CHEST);
 
-        // Calculate target position
         int screenWidth = _client.getWindow().getScaledWidth();
         int screenHeight = _client.getWindow().getScaledHeight();
-        int targetSize = 32;
+        int targetSize = Target.targetSize;
 
-        // Draw current target
+        Identifier TARGET_TEXTURE = Target.currentState.getTargetTexture();
+
+        // Display current target
         if (itemChest.getItem() == Items.ELYTRA)
-            drawContext.drawText( _client.textRenderer, "Target: " + SwitchTargetKeybind.currentType, (int)(screenWidth * 0.2163F), (int)(screenHeight * 0.806F), 0x00FF00, false);
+            drawContext.drawText(
+                    _client.textRenderer, "Target: " + SwitchTargetKeybind.getCurrentType(),
+                    (int)(screenWidth * 0.2163F), (int)(screenHeight * 0.806F),
+                    0x00FF00, false);
 
-        // Draw target
+        if(FindTarget.targetObject.targetEntity == null) return;
+
+        // Draw idle target
         //if( _client.player.isFallFlying() )
-        drawContext.drawTexture(TARGET_TEXTURE, FindTarget.targetX, FindTarget.targetY, 0, 0, targetSize, targetSize, targetSize, targetSize);
-        drawContext.drawText(_client.textRenderer, FindTarget.entityName, FindTarget.targetX + 25, FindTarget.targetY -5, 0xFFFFFF, false);
+        drawContext.drawTexture(
+                TARGET_TEXTURE,
+                FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
+                0, 0,
+                targetSize, targetSize, targetSize, targetSize);
+
+        // Draw targeted entity name
+        drawContext.drawText(
+                _client.textRenderer, FindTarget.targetObject.targetEntity.getName().getString(),
+                FindTarget.targetObject.targetPosX + 20, FindTarget.targetObject.targetPosY,
+                0xFFFFFF, false);
 
 
     }

@@ -11,8 +11,8 @@ import org.lwjgl.glfw.GLFW;
 
 public class SwitchTargetKeybind {
 
-    public static int typeNumber = 0;
-    public static String currentType = "none";
+    private static int typeNumber = 0;
+    private static String currentType = "none";
 
     public static KeyBinding switchType = KeyBindingHelper.registerKeyBinding( new KeyBinding(
         "Switch target",
@@ -38,23 +38,23 @@ public class SwitchTargetKeybind {
                     _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
                     break;
                 case 1:
-                    currentType = "player";
-                    _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
-                    break;
-                case 2:
                     currentType = "hostile";
                     _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
                     break;
-                case 3:
+                case 2:
                     currentType = "friendly";
                     _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
                     break;
-                default:
-                    currentType = "UNDETECTABLE";
+                case 3:
+                    currentType = "player";
+                    _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
                     break;
+                default: break;
             };
 //            _client.player.sendMessage(Text.literal("Targeted to " + currentType + " entities"), true);
         }
     }
+
+    public static String getCurrentType() { return currentType; }
 
 }
