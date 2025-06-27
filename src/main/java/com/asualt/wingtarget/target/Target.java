@@ -1,9 +1,13 @@
 package com.asualt.wingtarget.target;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.entity.Entity;
+import net.minecraft.sound.SoundEvents;
 import net.minecraft.util.Identifier;
 
 public class Target {
+
+    public static boolean canPlaySound = true;
 
     public enum ETargetState {
         TARGET_IDLE("textures/gui/target_idle.png"),
@@ -12,20 +16,33 @@ public class Target {
 
         ETargetState(String texturePath) { targetTexture = Identifier.of("wingtarget", texturePath); }
         private final Identifier targetTexture;
-        public Identifier getTargetTexture(){ return  targetTexture; }
+        public Identifier getTargetState(){ return  targetTexture; }
     };
 
-    public static ETargetState currentState = ETargetState.TARGET_IDLE;
+    public static ETargetState targetCurrentState = ETargetState.TARGET_IDLE;
     public static final int targetSize = 32;
-
-    public boolean isLocked = false;
-    public boolean isFollowing = false;
-    public int targetPosX = 0, targetPosY = 0;
+    public int targetPosX = 0;
+    public int targetPosY = 0;
 
     public Entity targetEntity = null;
     public int targetEntityDistance = 0;
 
     public void updatePosition(int x, int y){ targetPosX = x; targetPosY = y; }
+    public void updatePosition(){
+        targetPosX = (MinecraftClient.getInstance().getWindow().getScaledWidth() - Target.targetSize) / 2;
+        targetPosY = (MinecraftClient.getInstance().getWindow().getScaledHeight() - Target.targetSize) / 2;
+    }
 
+    public void stopTargetOnEntity(){
+        targetCurrentState = ETargetState.TARGET_IDLE;
+        targetEntity = null;
+        targetEntityDistance = 0;
+        targetPosX = (MinecraftClient.getInstance().getWindow().getScaledWidth() - Target.targetSize) / 2;
+        targetPosY = (MinecraftClient.getInstance().getWindow().getScaledHeight() - Target.targetSize) / 2;
+    }
 
+    public static void playSoundOnFollow(){
+            MinecraftClient.getInstance().player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_TURTLE.value(), 1.0F, 0.8F);
+            canPlaySound = false;
+    }
 }

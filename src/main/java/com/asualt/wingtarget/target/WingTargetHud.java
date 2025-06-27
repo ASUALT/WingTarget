@@ -4,51 +4,71 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
+import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.util.Identifier;
 
 public class WingTargetHud implements HudRenderCallback {
-
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter renderTickCounter) {
 
-        MinecraftClient _client = MinecraftClient.getInstance();
+    MinecraftClient _client = MinecraftClient.getInstance();
+    if (_client == null || _client.player == null) return;
 
-        if( _client.player == null) return;
-        // Get current item in chest slot
-        ItemStack itemChest = _client.player.getEquippedStack(EquipmentSlot.CHEST);
+    ItemStack itemChest = _client.player.getEquippedStack(EquipmentSlot.CHEST); // Get current item in chest slot
+    int screenWidth = _client.getWindow().getScaledWidth();
+    int screenHeight = _client.getWindow().getScaledHeight();
+    int targetSize = Target.targetSize;
 
-        int screenWidth = _client.getWindow().getScaledWidth();
-        int screenHeight = _client.getWindow().getScaledHeight();
-        int targetSize = Target.targetSize;
-
-        Identifier TARGET_TEXTURE = Target.currentState.getTargetTexture();
-
-        // Display current target
+        // Display current target type
         if (itemChest.getItem() == Items.ELYTRA)
             drawContext.drawText(
                     _client.textRenderer, "Target: " + SwitchTargetKeybind.getCurrentType(),
                     (int)(screenWidth * 0.2163F), (int)(screenHeight * 0.806F),
                     0x00FF00, false);
 
-        if(FindTarget.targetObject.targetEntity == null) return;
+        if (FindTarget.targetObject == null) return;
 
-        // Draw idle target
-        //if( _client.player.isFallFlying() )
-        drawContext.drawTexture(
-                TARGET_TEXTURE,
-                FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
-                0, 0,
-                targetSize, targetSize, targetSize, targetSize);
+        Entity entity = FindTarget.targetObject.targetEntity;
+        if (entity == null || FindTarget.targetObject.targetEntityDistance == 0) return;
+
+        String targetName = entity.getName().getString();
+        String targetDistance = Integer.toString(FindTarget.targetObject.targetEntityDistance);
+
+        // Draw target
+        if(!_client.player.isFallFlying()) return;
+
+        // If player holding crossbow draw target_follow
+        if(_client.player.getMainHandStack().getItem() == Items.CROSSBOW){
+            if (Target.canPlaySound)
+                Target.playSoundOnFollow();
+            drawContext.drawTexture(
+                    Target.ETargetState.TARGET_FOLLOW.getTargetState(),
+                    FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
+                    0, 0,
+                    targetSize, targetSize, targetSize, targetSize);
+        }
+        // Else draw target_idle
+        else {
+            Target.canPlaySound = true;
+            drawContext.drawTexture(
+                    Target.ETargetState.TARGET_IDLE.getTargetState(),
+                    FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
+                    0, 0,
+                    targetSize, targetSize, targetSize, targetSize);
+        }
 
         // Draw targeted entity name
         drawContext.drawText(
-                _client.textRenderer, FindTarget.targetObject.targetEntity.getName().getString(),
-                FindTarget.targetObject.targetPosX + 20, FindTarget.targetObject.targetPosY,
+                _client.textRenderer, targetName,
+                FindTarget.targetObject.targetPosX + 28, FindTarget.targetObject.targetPosY,
                 0xFFFFFF, false);
 
-
+        // Draw targeted entity distance
+        drawContext.drawText(
+                _client.textRenderer, targetDistance,
+                FindTarget.targetObject.targetPosX + 28, FindTarget.targetObject.targetPosY + 10,
+                0xFFFFFF, false);
     }
 }
