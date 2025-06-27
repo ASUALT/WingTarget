@@ -6,6 +6,8 @@ import net.minecraft.client.gui.DrawContext;
 import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
+import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
 
@@ -38,22 +40,37 @@ public class WingTargetHud implements HudRenderCallback {
 
         // Draw target
         if(!_client.player.isFallFlying()) return;
+        ItemStack currentItem = _client.player.getMainHandStack();
 
         // If player holding crossbow draw target_follow
-        if(_client.player.getMainHandStack().getItem() == Items.CROSSBOW){
-            if (Target.canPlaySound)
-                Target.playSoundOnFollow();
-            drawContext.drawTexture(
-                    Target.ETargetState.TARGET_FOLLOW.getTargetState(),
-                    FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
-                    0, 0,
-                    targetSize, targetSize, targetSize, targetSize);
+        if( currentItem.getItem() == Items.CROSSBOW){
+            // if player locked on target draw target_locked
+            if (!CrossbowItem.isCharged(currentItem)){ Target.targetCurrentState = Target.ETargetState.TARGET_FOLLOW; }
+            if (Target.targetCurrentState == Target.ETargetState.TARGET_LOCKED && CrossbowItem.isCharged(currentItem)){
+                FindTarget.targetObject.playSoundOnLock();
+                drawContext.drawTexture(
+                        Target.ETargetState.TARGET_LOCKED.value(),
+                        FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
+                        0, 0,
+                        targetSize, targetSize, targetSize, targetSize);
+            }
+            if (Target.targetCurrentState == Target.ETargetState.TARGET_FOLLOW) {
+                FindTarget.targetObject.playSoundOnFollow();
+                Target.canPlaySoundOnLock = true;
+                drawContext.drawTexture(
+                        Target.ETargetState.TARGET_FOLLOW.value(),
+                        FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
+                        0, 0,
+                        targetSize, targetSize, targetSize, targetSize);
+            }
+
         }
         // Else draw target_idle
         else {
             Target.canPlaySound = true;
+            Target.canPlaySoundOnLock = true;
             drawContext.drawTexture(
-                    Target.ETargetState.TARGET_IDLE.getTargetState(),
+                    Target.ETargetState.TARGET_IDLE.value(),
                     FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
                     0, 0,
                     targetSize, targetSize, targetSize, targetSize);

@@ -9,7 +9,8 @@ import net.minecraft.entity.ai.TargetPredicate;
 import net.minecraft.entity.mob.HostileEntity;
 import net.minecraft.entity.passive.PassiveEntity;
 import net.minecraft.entity.player.PlayerEntity;
-import net.minecraft.sound.SoundEvents;
+import net.minecraft.item.CrossbowItem;
+import net.minecraft.item.ItemStack;
 import net.minecraft.util.math.Vec3d;
 import org.joml.Quaternionf;
 import org.joml.Vector3f;
@@ -17,6 +18,7 @@ import java.util.Objects;
 
 public class FindTarget {
     private static final double IN_VIEW_THRESHOLD = 0.6;
+    private static final double IN_LOCK_THRESHOLD = 0.99;
     public static Target targetObject = new Target();
 
     public static void init(){
@@ -67,7 +69,9 @@ public class FindTarget {
         else {
             targetObject.targetEntityDistance = (int)Math.sqrt(_player.squaredDistanceTo(targetObject.targetEntity));
             transform3Dto2D(_client);
+            if (Target.targetCurrentState == Target.ETargetState.TARGET_LOCKED) return;
             Target.targetCurrentState = Target.ETargetState.TARGET_FOLLOW;
+            lockedOnTarget(_client);
         }
 
     }
@@ -123,5 +127,40 @@ public class FindTarget {
         return dot > IN_VIEW_THRESHOLD;
     }
 
+    private static boolean isInLockView(MinecraftClient _client){
+        Entity entity = targetObject.targetEntity;
+        if(entity == null || _client == null || _client.player == null) return false;
+        Vec3d toEntity = entity.getPos().subtract(_client.player.getCameraPosVec(RenderTickCounter.ONE.getTickDelta(true))).normalize();
+        Vec3d dir = _client.player.getRotationVec(RenderTickCounter.ONE.getTickDelta(true)).normalize();
+
+        double dot = toEntity.dotProduct(dir); // Dot product shows how directionally aligned vectors are
+        return dot > IN_LOCK_THRESHOLD;
+    }
+
+    private static void lockedOnTarget(MinecraftClient _client){
+        if (targetObject.targetEntity == null || _client == null) {
+            FindTarget.targetObject.stopTargetOnEntity();
+            return;
+        }
+        ItemStack currentItem = _client.player.getMainHandStack();
+
+        if (isInLockView(_client) && CrossbowItem.isCharged(currentItem)){
+            startCountdown();
+        }
+        else
+            Target.lockTime = 40;
+    }
+
+    private static void startCountdown(){
+        if (Target.lockTime > 0) {
+            Target.lockTime--;
+            return;
+        }
+
+        if (Target.lockTime == 0){
+            Target.lockTime = 40;
+            Target.targetCurrentState = Target.ETargetState.TARGET_LOCKED;
+        }
+    }
 }
 

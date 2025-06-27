@@ -7,7 +7,9 @@ import net.minecraft.util.Identifier;
 
 public class Target {
 
+    public static int lockTime = 40;
     public static boolean canPlaySound = true;
+    public static boolean canPlaySoundOnLock = false;
 
     public enum ETargetState {
         TARGET_IDLE("textures/gui/target_idle.png"),
@@ -16,7 +18,7 @@ public class Target {
 
         ETargetState(String texturePath) { targetTexture = Identifier.of("wingtarget", texturePath); }
         private final Identifier targetTexture;
-        public Identifier getTargetState(){ return  targetTexture; }
+        public Identifier value(){ return  targetTexture; }
     };
 
     public static ETargetState targetCurrentState = ETargetState.TARGET_IDLE;
@@ -41,8 +43,18 @@ public class Target {
         targetPosY = (MinecraftClient.getInstance().getWindow().getScaledHeight() - Target.targetSize) / 2;
     }
 
-    public static void playSoundOnFollow(){
-            MinecraftClient.getInstance().player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_TURTLE.value(), 1.0F, 0.8F);
-            canPlaySound = false;
+    public void playSoundOnFollow(){
+        if (!canPlaySound) return;
+        MinecraftClient.getInstance().player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_TURTLE.value(), 1.0F, 0.8F);
+        canPlaySound = false;
+        canPlaySoundOnLock = true;
+    }
+
+    public void playSoundOnLock(){
+        if (!canPlaySoundOnLock) return;
+        MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0F, 1.2F);
+        canPlaySound = false;
+        canPlaySoundOnLock = false;
+
     }
 }
