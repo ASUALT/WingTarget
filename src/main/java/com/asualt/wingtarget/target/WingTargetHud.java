@@ -7,11 +7,12 @@ import net.minecraft.client.render.RenderTickCounter;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.item.CrossbowItem;
-import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
+import net.minecraft.util.Identifier;
 
 public class WingTargetHud implements HudRenderCallback {
+
     @Override
     public void onHudRender(DrawContext drawContext, RenderTickCounter renderTickCounter) {
 
@@ -41,27 +42,29 @@ public class WingTargetHud implements HudRenderCallback {
         // Draw target
         if(!_client.player.isFallFlying()) return;
         ItemStack currentItem = _client.player.getMainHandStack();
+        boolean isCrossbow = currentItem.getItem() == Items.CROSSBOW;
+        boolean isCrossbowCharged = CrossbowItem.isCharged(currentItem);
 
         // If player holding crossbow draw target_follow
-        if( currentItem.getItem() == Items.CROSSBOW){
+        if( isCrossbow ){
+            if (!isCrossbowCharged)
+                Target.targetCurrentState = Target.ETargetState.TARGET_FOLLOW;
+
             // if player locked on target draw target_locked
-            if (!CrossbowItem.isCharged(currentItem)){ Target.targetCurrentState = Target.ETargetState.TARGET_FOLLOW; }
-            if (Target.targetCurrentState == Target.ETargetState.TARGET_LOCKED && CrossbowItem.isCharged(currentItem)){
+            if (FindTarget.targetObject.isLocked() && isCrossbowCharged){
                 FindTarget.targetObject.playSoundOnLock();
-                drawContext.drawTexture(
-                        Target.ETargetState.TARGET_LOCKED.value(),
-                        FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
-                        0, 0,
-                        targetSize, targetSize, targetSize, targetSize);
+                drawTarget(drawContext, Target.ETargetState.TARGET_LOCKED.value());
             }
-            if (Target.targetCurrentState == Target.ETargetState.TARGET_FOLLOW) {
+            // Draw targe_follow
+            else if (FindTarget.targetObject.isFollowing()) {
                 FindTarget.targetObject.playSoundOnFollow();
                 Target.canPlaySoundOnLock = true;
-                drawContext.drawTexture(
-                        Target.ETargetState.TARGET_FOLLOW.value(),
-                        FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
-                        0, 0,
-                        targetSize, targetSize, targetSize, targetSize);
+                drawTarget(drawContext, Target.ETargetState.TARGET_FOLLOW.value());
+
+                // Draw lock timer
+                drawText(drawContext, String.format("%.2f", Target.lockTime / 20.0),
+                        FindTarget.targetObject.targetPosX -15,
+                        FindTarget.targetObject.targetPosY);
             }
 
         }
@@ -69,23 +72,31 @@ public class WingTargetHud implements HudRenderCallback {
         else {
             Target.canPlaySound = true;
             Target.canPlaySoundOnLock = true;
-            drawContext.drawTexture(
-                    Target.ETargetState.TARGET_IDLE.value(),
-                    FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
-                    0, 0,
-                    targetSize, targetSize, targetSize, targetSize);
+            drawTarget(drawContext, Target.ETargetState.TARGET_IDLE.value());
         }
 
         // Draw targeted entity name
-        drawContext.drawText(
-                _client.textRenderer, targetName,
-                FindTarget.targetObject.targetPosX + 28, FindTarget.targetObject.targetPosY,
-                0xFFFFFF, false);
+        drawText(drawContext, targetName,
+                FindTarget.targetObject.targetPosX + 28,
+                FindTarget.targetObject.targetPosY);
 
         // Draw targeted entity distance
-        drawContext.drawText(
-                _client.textRenderer, targetDistance,
-                FindTarget.targetObject.targetPosX + 28, FindTarget.targetObject.targetPosY + 10,
-                0xFFFFFF, false);
+        drawText(drawContext, targetDistance,
+                FindTarget.targetObject.targetPosX + 28,
+                FindTarget.targetObject.targetPosY + 10);
+    }
+
+    private void drawTarget(DrawContext dc, Identifier textrure){
+        dc.drawTexture(
+                textrure,
+                FindTarget.targetObject.targetPosX, FindTarget.targetObject.targetPosY,
+                0, 0,
+                Target.targetSize, Target.targetSize, Target.targetSize, Target.targetSize);
+    }
+    private void drawText(DrawContext dc, String text, int x, int y){
+        dc.drawText(
+                MinecraftClient.getInstance().textRenderer, text,
+                x, y,
+                0xFFFFFF, true);
     }
 }

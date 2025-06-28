@@ -55,6 +55,9 @@ public class Target {
         MinecraftClient.getInstance().player.playSound(SoundEvents.ENTITY_ILLUSIONER_MIRROR_MOVE, 1.0F, 1.2F);
         canPlaySound = false;
         canPlaySoundOnLock = false;
-
     }
+
+    public boolean isIdling() { return targetCurrentState == ETargetState.TARGET_IDLE; }
+    public boolean isFollowing() { return targetCurrentState == ETargetState.TARGET_FOLLOW; }
+    public boolean isLocked() { return targetCurrentState == ETargetState.TARGET_LOCKED; }
 }

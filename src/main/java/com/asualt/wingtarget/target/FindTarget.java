@@ -69,7 +69,7 @@ public class FindTarget {
         else {
             targetObject.targetEntityDistance = (int)Math.sqrt(_player.squaredDistanceTo(targetObject.targetEntity));
             transform3Dto2D(_client);
-            if (Target.targetCurrentState == Target.ETargetState.TARGET_LOCKED) return;
+            if (FindTarget.targetObject.isLocked()) return;
             Target.targetCurrentState = Target.ETargetState.TARGET_FOLLOW;
             lockedOnTarget(_client);
         }
@@ -144,9 +144,8 @@ public class FindTarget {
         }
         ItemStack currentItem = _client.player.getMainHandStack();
 
-        if (isInLockView(_client) && CrossbowItem.isCharged(currentItem)){
+        if (isInLockView(_client) && CrossbowItem.isCharged(currentItem) && targetObject.isFollowing())
             startCountdown();
-        }
         else
             Target.lockTime = 40;
     }
