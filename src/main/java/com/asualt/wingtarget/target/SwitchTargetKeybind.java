@@ -5,14 +5,20 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.option.KeyBinding;
 import net.minecraft.client.util.InputUtil;
+import net.minecraft.entity.LivingEntity;
+import net.minecraft.entity.mob.HostileEntity;
+import net.minecraft.entity.passive.PassiveEntity;
+import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.sound.SoundEvents;
-import org.jetbrains.annotations.NotNull;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.List;
 
 public class SwitchTargetKeybind {
 
-    private static int typeNumber = 0;
-    private static String currentType = "none";
+    private static int typeNumber = -1;
+    private static final List<Class<? extends LivingEntity>> entityTypes = List.of(HostileEntity.class, PassiveEntity.class, PlayerEntity.class);
+    private static Class<? extends LivingEntity> currentType = null;
 
     public static KeyBinding switchType = KeyBindingHelper.registerKeyBinding( new KeyBinding(
         "Switch target",
@@ -28,33 +34,21 @@ public class SwitchTargetKeybind {
         });
     }
 
-    private static void selectType(@NotNull MinecraftClient _client){
-        if (_client.player != null)
-        {
-            typeNumber = (typeNumber + 1) % 4;
-            switch (typeNumber){
-                case 0:
-                    currentType = "none";
-                    _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
-                    break;
-                case 1:
-                    currentType = "hostile";
-                    _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
-                    break;
-                case 2:
-                    currentType = "friendly";
-                    _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
-                    break;
-                case 3:
-                    currentType = "player";
-                    _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
-                    break;
-                default: break;
-            };
-//            _client.player.sendMessage(Text.literal("Targeted to " + currentType + " entities"), true);
-        }
+    private static void selectType(MinecraftClient _client){
+        if (_client.player == null) return;
+
+        typeNumber = (typeNumber + 1) % (entityTypes.size() + 1);
+        currentType = typeNumber == entityTypes.size() ? null : entityTypes.get(typeNumber);
+        _client.player.playSound(SoundEvents.ITEM_ARMOR_EQUIP_IRON.value(), 1.0F, 1.2F);
     }
 
-    public static String getCurrentType() { return currentType; }
+    public static Class<? extends LivingEntity> getCurrentTypeRaw() { return currentType; }
+    public static String getCurrentTypeString(){
+        if (currentType == null) return "none";
+        if (currentType == HostileEntity.class) return "hostile";
+        if (currentType == PassiveEntity.class) return "friendly";
+        if (currentType == PlayerEntity.class) return "player";
+        return "UNDEFINED";
+    }
 
 }
